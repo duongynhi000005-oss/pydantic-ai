@@ -10492,6 +10492,25 @@ async def test_anthropic_code_execution_tool_version_unsupported(allow_model_req
     assert get_mock_chat_completion_kwargs(mock_client) == []
 
 
+def test_anthropic_code_execution_tool_bedrock_unsupported():
+    """`CodeExecutionTool` is excluded from `supported_native_tools` on `AsyncAnthropicBedrock`."""
+    from anthropic import AsyncAnthropicBedrock, AsyncAnthropicBedrockMantle
+
+    bedrock_client = mock_anthropic_client(AsyncAnthropicBedrock, 'https://bedrock-runtime.us-east-1.amazonaws.com')
+    bedrock_model = AnthropicModel(
+        'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+        provider=AnthropicProvider(anthropic_client=bedrock_client),
+    )
+    assert CodeExecutionTool not in bedrock_model.profile.get('supported_native_tools', SUPPORTED_NATIVE_TOOLS)
+
+    mantle_client = mock_anthropic_client(AsyncAnthropicBedrockMantle, 'https://bedrock-mantle.us-east-1.api.aws')
+    mantle_model = AnthropicModel(
+        'anthropic.claude-sonnet-4-5-20250929-v1:0',
+        provider=AnthropicProvider(anthropic_client=mantle_client),
+    )
+    assert CodeExecutionTool in mantle_model.profile.get('supported_native_tools', SUPPORTED_NATIVE_TOOLS)
+
+
 @pytest.mark.parametrize(
     ('model_name', 'expected_tool_type'),
     [
